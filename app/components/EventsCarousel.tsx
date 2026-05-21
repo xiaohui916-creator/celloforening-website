@@ -1,154 +1,93 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './EventsCarousel.module.css';
 
 type Photo = { src: string; alt: string };
-
-const FALLBACK_PHOTOS: Photo[] = [
-  { src: '/images/122026.jpg', alt: 'Bergen Celloforeningen' },
-];
-
-const TILE_COUNT = 4;
-
-function backgroundPositionForTile(tileIndex: number) {
-  const positions = ['22% 32%', '78% 28%', '28% 72%', '72% 68%'];
-  return positions[tileIndex % positions.length];
-}
+type Video = { src: string };
 
 export default function EventsCarousel() {
-  const [photos, setPhotos] = useState<Photo[]>(FALLBACK_PHOTOS);
-  const photosRef = useRef(photos);
-  photosRef.current = photos;
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
 
-  const initialIndices = useMemo(
-    () => Array.from({ length: TILE_COUNT }, (_, i) => i % Math.max(FALLBACK_PHOTOS.length, 1)),
-    []
-  );
-  const [photoIndices, setPhotoIndices] = useState<number[]>(initialIndices);
-  const [flipped, setFlipped] = useState<boolean[]>(
-    () => Array.from({ length: TILE_COUNT }, () => false)
-  );
-
+  // 自动从文件夹读取
   useEffect(() => {
-    let cancelled = false;
-
-    const load = async () => {
-      try {
-        const res = await fetch('/api/gallery-images', { cache: 'no-store' });
-        if (!res.ok) return;
-        const data = (await res.json()) as { photos?: Photo[] };
-        if (cancelled || !data.photos?.length) return;
-        setPhotos(data.photos);
-      } catch {
-        /* keep fallback */
-      }
-    };
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
+    fetch('/api/gallery-images')
+      .then(res => res.json())
+      .then(data => {
+        if (data.photos?.length) setPhotos(data.photos);
+        if (data.videos?.length) setVideos(data.videos);
+      });
   }, []);
 
+  // 图片自动轮播
   useEffect(() => {
-    const len = Math.max(photos.length, 1);
-    setPhotoIndices((prev) =>
-      prev.map((idx) => (Number.isFinite(idx) ? idx % len : 0))
-    );
+    if (photos.length === 0) return;
+    const timer = setInterval(() => {
+      setCurrentPhotoIndex(prev => (prev + 1) % photos.length);
+    }, 3000);
+    return () => clearInterval(timer);
   }, [photos]);
 
-  const cancelledRef = useRef(false);
-  const timeoutRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    cancelledRef.current = false;
-    const flipDurationMs = 650;
-
-    const scheduleNextFlip = () => {
-      if (cancelledRef.current) return;
-      const delayMs = 2000 + Math.floor(Math.random() * 3500);
-      timeoutRef.current = window.setTimeout(() => {
-        if (cancelledRef.current) return;
-        const tileIndex = Math.floor(Math.random() * TILE_COUNT);
-        const len = Math.max(photosRef.current.length, 1);
-
-        setFlipped((prev) => {
-          const next = [...prev];
-          next[tileIndex] = !next[tileIndex];
-          return next;
-        });
-
-        window.setTimeout(() => {
-          if (cancelledRef.current) return;
-          setPhotoIndices((prev) => {
-            const next = [...prev];
-            next[tileIndex] = (next[tileIndex] + 1) % len;
-            return next;
-          });
-        }, flipDurationMs / 2);
-
-        scheduleNextFlip();
-      }, delayMs);
-    };
-
-    scheduleNextFlip();
-
-    return () => {
-      cancelledRef.current = true;
-      if (timeoutRef.current !== null) {
-        window.clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-    };
-  }, []);
-
-  const len = Math.max(photos.length, 1);
+  if (photos.length === 0 && videos.length === 0) return null;
 
   return (
     <section id="aktiviteter" className={styles.section}>
       <div className={styles.container}>
-        <div className={styles.galleryGrid} aria-label="Bildegalleri">
-          {Array.from({ length: TILE_COUNT }, (_, tileIndex) => {
-            const photo = photos[photoIndices[tileIndex] % len] ?? photos[0];
-            const backPhoto = photos[(photoIndices[tileIndex] + 1) % len] ?? photos[0];
-            const position = backgroundPositionForTile(tileIndex);
+        <div style={{ display: 'flex', gap: '1rem', overflow: 'hidden' }}>
 
-            return (
-              <div key={tileIndex} className={styles.tile}>
+          {/* 左边：图片自动轮播 */}
+          {photos.length > 0 && (
+            <div style={{ flex: 1, position: 'relative', aspectRatio: '16/9', overflow: 'hidden', borderRadius: '1rem' }}>
+              {photos.map((photo, i) => (
                 <div
-                  className={`${styles.tileInner} ${flipped[tileIndex] ? styles.isFlipped : ''}`}
-                >
-                  <div
-                    className={`${styles.face} ${styles.front}`}
-                    style={{
-                      backgroundImage: `url('${photo.src}')`,
-                      backgroundPosition: position,
-                    }}
-                    role="img"
-                    aria-label={photo.alt}
-                  >
-                    <span className={styles.posterLabel} aria-hidden>
-                      Poster
-                    </span>
-                  </div>
-                  <div
-                    className={`${styles.face} ${styles.back}`}
-                    style={{
-                      backgroundImage: `url('${backPhoto.src}')`,
-                      backgroundPosition: position,
-                    }}
-                    role="img"
-                    aria-label={backPhoto.alt}
-                  >
-                    <span className={styles.posterLabel} aria-hidden>
-                      Poster
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                  key={photo.src}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundImage: `url('${photo.src}')`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    opacity: i === currentPhotoIndex ? 1 : 0,
+                    transition: 'opacity 0.8s ease',
+                  }}
+                  role="img"
+                  aria-label={photo.alt}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* 右边：视频轮播 */}
+{videos.length > 0 && (
+  <div style={{ flex: 1, aspectRatio: '16/9', position: 'relative', borderRadius: '1rem' }}>
+    <video
+      key={videos[currentVideoIndex].src}
+      src={videos[currentVideoIndex].src}
+      autoPlay
+      muted
+      controls
+      playsInline
+      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }}
+      onEnded={() => setCurrentVideoIndex(prev => (prev + 1) % videos.length)}
+    />
+    {videos.length > 1 && (
+      <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', display: 'flex', gap: '0.5rem', zIndex: 10 }}>
+        <button
+          onClick={() => setCurrentVideoIndex(prev => (prev - 1 + videos.length) % videos.length)}
+          style={{ background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '50%', width: '2.2rem', height: '2.2rem', cursor: 'pointer', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >‹</button>
+        <button
+          onClick={() => setCurrentVideoIndex(prev => (prev + 1) % videos.length)}
+          style={{ background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '50%', width: '2.2rem', height: '2.2rem', cursor: 'pointer', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >›</button>
+      </div>
+    )}
+  </div>
+)}
+
         </div>
       </div>
     </section>

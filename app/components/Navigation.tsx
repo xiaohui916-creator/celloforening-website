@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useId, useState } from 'react';
 import styles from './Navigation.module.css';
+import Image from 'next/image';
 
 const NAV_LINKS = [
   { href: '#hjem', label: 'Hjem' },
+  { href: '#om-oss', label: 'Om oss' },
   { href: '#aktiviteter', label: 'Aktiviteter' },
   { href: '#kalender', label: 'Kalender' },
   { href: '#kontakt', label: 'Kontakt' },
@@ -46,7 +48,10 @@ export default function Navigation() {
   return (
     <nav className={styles.nav} aria-label="Hovednavigasjon">
       <div className={styles.navContainer}>
-        <div className={styles.logo}>🎻 Bergen Celloforeningen</div>
+       <div className={styles.logo}>
+  <Image src="/logo2.png" alt="Bergen Celloforeningen" width={100} height={100} style={{objectFit: 'contain'}} />
+  <span>Bergen Celloforeningen</span>
+</div>
         <ul className={styles.navLinks}>
           {NAV_LINKS.map(({ href, label }) => (
             <li key={href}>
@@ -55,9 +60,9 @@ export default function Navigation() {
           ))}
         </ul>
         <div className={styles.navActions}>
-          <button type="button" className={styles.ctaButton}>
-            Bli Medlem
-          </button>
+          <Link href="/bli-medlem" className={styles.ctaButton}>
+  Bli Medlem
+</Link>
           <button
             type="button"
             className={`${styles.menuButton} ${menuOpen ? styles.menuButtonOpen : ''}`}

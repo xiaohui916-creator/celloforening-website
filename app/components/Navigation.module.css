@@ -20,13 +20,15 @@
 }
 
 .logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   font-size: 1.1rem;
   font-weight: 800;
   letter-spacing: 0.2px;
   color: var(--text-primary);
   min-width: 0;
 }
-
 .navLinks {
   display: flex;
   gap: 2rem;
