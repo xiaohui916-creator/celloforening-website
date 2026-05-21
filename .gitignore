@@ -5,7 +5,9 @@
 
 # testing
 /coverage
-
+public/images/*.mov
+public/images/*.MOV
+public/images/*.mp4
 # next.js
 /.next/
 /out/
@@ -31,3 +33,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+*.mov
+*.MOV
+*.mp4
