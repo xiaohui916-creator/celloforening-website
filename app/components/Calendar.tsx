@@ -1,76 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import styles from './Calendar.module.css';
+import { useEffect, useState } from 'react';
 
 interface Event {
   id: number;
   title: string;
-  date: Date;
+  date: string;
+  endDate?: string;
+  location: string;
+  description: string;
   icon: string;
-}
-
-interface StoredEvent {
-  id: number;
-  title: string;
-  dateStr: string;
-  icon: string;
-}
-
-const ICONS = ['🎪','🧁','🦄','🍦','🎨','🎬','🎻','🎵','🌟','🎉'];
-
-const DEFAULT_EVENTS: StoredEvent[] = [
-  { id: 1, title: 'Musikalsk Lekedag', dateStr: '2026-05-15', icon: '🎪' },
-  { id: 2, title: 'Mini Konsert & Kaker', dateStr: '2026-05-22', icon: '🧁' },
-  { id: 3, title: 'Eventyr med Cello', dateStr: '2026-05-28', icon: '🦄' },
-  { id: 4, title: 'Sommer-konsert i Parken', dateStr: '2026-06-05', icon: '🍦' },
-  { id: 5, title: 'Cello-workshop for Nybegynnere', dateStr: '2026-06-12', icon: '🎨' },
-  { id: 6, title: 'Film Musikk Spesial', dateStr: '2026-06-19', icon: '🎬' },
-];
-
-function toEvent(s: StoredEvent): Event {
-  return { ...s, date: new Date(s.dateStr) };
+  type: string;
 }
 
 export default function Calendar() {
+  const [events, setEvents] = useState<Event[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [storedEvents, setStoredEvents] = useState<StoredEvent[]>(DEFAULT_EVENTS);
-  const [showForm, setShowForm] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newDate, setNewDate] = useState('');
-  const [newIcon, setNewIcon] = useState('🎻');
 
-  // 从 localStorage 读取
   useEffect(() => {
-    const saved = localStorage.getItem('cello-events');
-    if (saved) setStoredEvents(JSON.parse(saved));
+    fetch('/events.json')
+      .then(res => res.json())
+      .then(data => setEvents(data));
   }, []);
-
-  const saveEvents = (events: StoredEvent[]) => {
-    setStoredEvents(events);
-    localStorage.setItem('cello-events', JSON.stringify(events));
-  };
-
-  const addEvent = () => {
-    if (!newTitle || !newDate) return;
-    const newEvent: StoredEvent = {
-      id: Date.now(),
-      title: newTitle,
-      dateStr: newDate,
-      icon: newIcon,
-    };
-    saveEvents([...storedEvents, newEvent]);
-    setNewTitle('');
-    setNewDate('');
-    setNewIcon('🎻');
-    setShowForm(false);
-  };
-
-  const deleteEvent = (id: number) => {
-    saveEvents(storedEvents.filter(e => e.id !== id));
-  };
-
-  const events = storedEvents.map(toEvent);
 
   const monthNames = ['Januar','Februar','Mars','April','Mai','Juni',
                       'Juli','August','September','Oktober','November','Desember'];
@@ -85,53 +36,55 @@ export default function Calendar() {
   const adjustedStart = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
 
   const getDayEvents = (day: number) =>
-    events.filter(e =>
-      e.date.getDate() === day &&
-      e.date.getMonth() === month &&
-      e.date.getFullYear() === year
-    );
+    events.filter(e => {
+      const d = new Date(e.date);
+      return d.getDate() === day && d.getMonth() === month && d.getFullYear() === year;
+    });
 
-  const weekdayShort = (day: number) => {
-    const d = new Date(year, month, day);
-    const dow = d.getDay();
-    return dayNames[dow === 0 ? 6 : dow - 1];
-  };
-
-  const agendaDays = Array.from({ length: daysInMonth }, (_, i) => i + 1)
-    .map(day => ({ day, dayEvents: getDayEvents(day) }))
-    .filter(({ dayEvents }) => dayEvents.length > 0);
+  const upcomingEvents = events
+    .filter(e => new Date(e.date) >= new Date())
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const renderCalendarDays = () => {
     const days = [];
     const prevMonthDays = new Date(year, month, 0).getDate();
+
     for (let i = adjustedStart - 1; i >= 0; i--) {
       days.push(
-        <div key={`prev-${i}`} className={`${styles.calendarDay} ${styles.otherMonth}`}>
-          <div className={styles.dayNumber}>{prevMonthDays - i}</div>
+        <div key={`prev-${i}`} style={{ padding: '0.4rem', minHeight: '60px', opacity: 0.3, borderRadius: '8px' }}>
+          <span style={{ fontSize: '0.85rem' }}>{prevMonthDays - i}</span>
         </div>
       );
     }
+
     for (let day = 1; day <= daysInMonth; day++) {
       const dayEvents = getDayEvents(day);
+      const isToday = new Date().getDate() === day && new Date().getMonth() === month && new Date().getFullYear() === year;
       days.push(
-        <div key={`current-${day}`} className={styles.calendarDay}>
-          <div className={styles.dayNumber}>{day}</div>
-          {dayEvents.map(event => (
-            <div key={event.id} className={styles.calendarEvent} title={event.title}>
-              <span className={styles.calendarEventIcon} aria-hidden>{event.icon}</span>
-              <span className={styles.calendarEventLabel}>{event.title}</span>
+        <div key={`current-${day}`} style={{
+          padding: '0.4rem',
+          minHeight: '60px',
+          borderRadius: '8px',
+          background: dayEvents.length > 0 ? 'rgba(42, 122, 111, 0.1)' : isToday ? 'rgba(42, 122, 111, 0.05)' : 'transparent',
+          border: isToday ? '2px solid #2a7a6f' : '1px solid transparent',
+        }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: isToday ? 700 : 400 }}>{day}</span>
+          {dayEvents.map(e => (
+            <div key={e.id} style={{ fontSize: '0.7rem', background: '#2a7a6f', color: 'white', borderRadius: '4px', padding: '2px 4px', marginTop: '2px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+              {e.icon} {e.title}
             </div>
           ))}
         </div>
       );
     }
+
     const totalCells = adjustedStart + daysInMonth;
     const remainingCells = 7 - (totalCells % 7);
     if (remainingCells < 7) {
       for (let day = 1; day <= remainingCells; day++) {
         days.push(
-          <div key={`next-${day}`} className={`${styles.calendarDay} ${styles.otherMonth}`}>
-            <div className={styles.dayNumber}>{day}</div>
+          <div key={`next-${day}`} style={{ padding: '0.4rem', minHeight: '60px', opacity: 0.3, borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.85rem' }}>{day}</span>
           </div>
         );
       }
@@ -140,113 +93,53 @@ export default function Calendar() {
   };
 
   return (
-    <section id="kalender" className={styles.section}>
-      <div className={styles.container}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Aktivitetskalender</h2>
-          <p className={styles.sectionSubtitle}>Hold deg oppdatert på alle våre arrangementer</p>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            style={{ marginTop: '1rem', padding: '0.5rem 1.2rem', background: '#2a7a6f', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.95rem' }}
-          >
-            {showForm ? '✕ Avbryt' : '＋ Legg til aktivitet'}
-          </button>
-        </div>
+    <section id="kalender" style={{ padding: '4rem 2rem' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '0.5rem' }}>Aktivitetskalender</h2>
+        <p style={{ textAlign: 'center', color: '#666', marginBottom: '2.5rem' }}>Medlemshelger og arrangementer</p>
 
-        {/* 添加活动表单 */}
-        {showForm && (
-          <div style={{ background: '#f8f8f8', borderRadius: '1rem', padding: '1.5rem', marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Aktivitetsnavn</label>
-              <input
-                type="text"
-                placeholder="f.eks. Konsert i Bergen"
-                value={newTitle}
-                onChange={e => setNewTitle(e.target.value)}
-                style={{ padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid #ccc', fontSize: '0.95rem', minWidth: '220px' }}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Dato</label>
-              <input
-                type="date"
-                value={newDate}
-                onChange={e => setNewDate(e.target.value)}
-                style={{ padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid #ccc', fontSize: '0.95rem' }}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Ikon</label>
-              <select
-                value={newIcon}
-                onChange={e => setNewIcon(e.target.value)}
-                style={{ padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid #ccc', fontSize: '1.1rem' }}
-              >
-                {ICONS.map(icon => <option key={icon} value={icon}>{icon}</option>)}
-              </select>
-            </div>
-            <button
-              onClick={addEvent}
-              style={{ padding: '0.5rem 1.2rem', background: '#2a7a6f', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.95rem', height: '2.2rem' }}
-            >
-              Lagre
-            </button>
-          </div>
-        )}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
 
-        <div className={styles.calendarWrapper}>
-          <div className={styles.calendarHeader}>
-            <h3 className={styles.calendarMonth}>{monthNames[month]} {year}</h3>
-            <div className={styles.calendarNav}>
-              <button type="button" className={styles.calendarBtn} onClick={() => setCurrentDate(new Date(year, month - 1, 1))} aria-label="Forrige måned">
-                <span className={styles.calendarBtnWide}>← Forrige</span>
-                <span className={styles.calendarBtnNarrow} aria-hidden>‹</span>
-              </button>
-              <button type="button" className={styles.calendarBtn} onClick={() => setCurrentDate(new Date(year, month + 1, 1))} aria-label="Neste måned">
-                <span className={styles.calendarBtnWide}>Neste →</span>
-                <span className={styles.calendarBtnNarrow} aria-hidden>›</span>
-              </button>
+          {/* 左边：日历 */}
+          <div style={{ background: 'white', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <button onClick={() => setCurrentDate(new Date(year, month - 1, 1))} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#2a7a6f' }}>‹</button>
+              <strong>{monthNames[month]} {year}</strong>
+              <button onClick={() => setCurrentDate(new Date(year, month + 1, 1))} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#2a7a6f' }}>›</button>
             </div>
-          </div>
-          <div className={styles.calendarGridPanel}>
-            <div className={styles.calendarGrid}>
-              {dayNames.map(day => (
-                <div key={day} className={styles.calendarDayHeader}>{day}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px' }}>
+              {dayNames.map(d => (
+                <div key={d} style={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: '#999', padding: '0.3rem 0' }}>{d}</div>
               ))}
               {renderCalendarDays()}
             </div>
           </div>
-          <div className={styles.calendarListPanel} role="region" aria-label="Aktiviteter i valgt måned">
-            {agendaDays.length === 0 ? (
-              <p className={styles.agendaEmpty}>Ingen aktiviteter denne måneden.</p>
+
+          {/* 右边：即将到来的活动 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <h3 style={{ margin: 0 }}>Kommende arrangementer</h3>
+            {upcomingEvents.length === 0 ? (
+              <p style={{ color: '#999' }}>Ingen kommende arrangementer.</p>
             ) : (
-              <ul className={styles.agendaList}>
-                {agendaDays.map(({ day, dayEvents }) => (
-                  <li key={day} className={styles.agendaDay}>
-                    <div className={styles.agendaDateRow}>
-                      <span className={styles.agendaDayNum}>{day}.</span>
-                      <span className={styles.agendaWeekday}>{weekdayShort(day)}</span>
-                    </div>
-                    <ul className={styles.agendaEvents}>
-                      {dayEvents.map(event => (
-                        <li key={event.id} className={styles.agendaEventRow} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <span>
-                            <span className={styles.agendaEventIcon} aria-hidden>{event.icon}</span>
-                            <span className={styles.agendaEventTitle}>{event.title}</span>
-                          </span>
-                          <button
-                            onClick={() => deleteEvent(event.id)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999', fontSize: '0.85rem', marginLeft: '0.5rem' }}
-                            title="Slett"
-                          >✕</button>
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ))}
-              </ul>
+              upcomingEvents.map(event => (
+                <div key={event.id} style={{ background: 'white', borderRadius: '1rem', padding: '1.2rem', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', borderLeft: '4px solid #2a7a6f' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                    <span style={{ fontSize: '1.5rem' }}>{event.icon}</span>
+                    <strong style={{ fontSize: '1.1rem' }}>{event.title}</strong>
+                  </div>
+                  <p style={{ color: '#2a7a6f', fontWeight: 600, fontSize: '0.9rem', margin: '0.2rem 0' }}>
+                    📅 {new Date(event.date).toLocaleDateString('nb-NO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                  </p>
+                  <p style={{ color: '#666', fontSize: '0.9rem', margin: '0.2rem 0' }}>📍 {event.location}</p>
+                  <p style={{ fontSize: '0.9rem', margin: '0.4rem 0 0' }}>{event.description}</p>
+                </div>
+              ))
             )}
+            <p style={{ fontSize: '0.8rem', color: '#999', marginTop: '0.5rem' }}>
+              Nye arrangementer legges til fortløpende.
+            </p>
           </div>
+
         </div>
       </div>
     </section>

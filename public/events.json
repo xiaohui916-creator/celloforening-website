@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "title": "Cellobration",
+    "date": "2026-06-07",
+    "endDate": "2026-06-07",
+    "location": "Bergen",
+    "description": "Medlemshelg med musikk, samspill og sosialt samvær for alle cellister.",
+    "icon": "🎻",
+    "type": "medlemshelg"
+  }
+]
