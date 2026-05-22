@@ -49,8 +49,7 @@ export default function Navigation() {
     <nav className={styles.nav} aria-label="Hovednavigasjon">
       <div className={styles.navContainer}>
        <div className={styles.logo}>
-  <Image src="/logo2.png" alt="Bergen Celloforeningen" width={100} height={100} style={{objectFit: 'contain'}} />
-  <span>Bergen Celloforeningen</span>
+  <Image src="/logo1.png" alt="Bergen Celloforeningen" width={200} height={200} style={{objectFit: 'contain'}} />
 </div>
         <ul className={styles.navLinks}>
           {NAV_LINKS.map(({ href, label }) => (
