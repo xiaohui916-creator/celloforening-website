@@ -95,8 +95,8 @@ export default function Calendar() {
   return (
     <section id="kalender" style={{ padding: '4rem 2rem' }}>
       <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '0.5rem' }}>Aktivitetskalender</h2>
-        <p style={{ textAlign: 'center', color: '#666', marginBottom: '2.5rem' }}>Medlemshelger og arrangementer</p>
+      <h2 style={{ textAlign: 'center', marginBottom: '0.5rem' }}>Kommende arrangementer</h2>
+<p style={{ textAlign: 'center', color: '#666', marginBottom: '2.5rem' }}>Aktiviteter de neste månedene</p>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
 

@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { href: '#hjem', label: 'Hjem' },
   { href: '#om-oss', label: 'Om oss' },
   { href: '#aktiviteter', label: 'Aktiviteter' },
-  { href: '#kalender', label: 'Kalender' },
+  { href: '#sponsorer', label: 'Sponsorer' },
   { href: '#kontakt', label: 'Kontakt' },
 ] as const;
 
@@ -49,7 +49,7 @@ export default function Navigation() {
     <nav className={styles.nav} aria-label="Hovednavigasjon">
       <div className={styles.navContainer}>
        <div className={styles.logo}>
-  <Image src="/logo1.png" alt="Bergen Celloforeningen" width={200} height={200} style={{objectFit: 'contain'}} />
+ <Image src="/logo1.png" alt="Bergen Celloforeningen" width={200} height={200} style={{objectFit: 'contain'}} />
 </div>
         <ul className={styles.navLinks}>
           {NAV_LINKS.map(({ href, label }) => (

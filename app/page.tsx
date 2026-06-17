@@ -3,6 +3,7 @@ import Hero from './components/Hero';
 import OmOss from './components/OmOss';
 import EventsCarousel from './components/EventsCarousel';
 import Calendar from './components/Calendar';
+import Sponsors from './components/Sponsors';
 import Footer from './components/Footer';
 
 export default function Home() {
@@ -13,6 +14,7 @@ export default function Home() {
       <OmOss />
       <EventsCarousel />
       <Calendar />
+      <Sponsors />
       <Footer />
     </>
   );

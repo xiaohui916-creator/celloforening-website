@@ -6,7 +6,35 @@
     "endDate": "2026-06-07",
     "location": "Bergen",
     "description": "Medlemshelg med musikk, samspill og sosialt samvær for alle cellister.",
-    "icon": "🎻",
+    "icon": "♩",
     "type": "medlemshelg"
+  },
+  {
+    "id": 2,
+    "title": "Høstkickstart",
+    "date": "2026-08-22",
+    "endDate": "2026-08-23",
+    "location": "Kulturskolen, Bergen",
+    "description": "Kickstart for høstsesongen – to dager med samspill, øving og sosialt samvær for alle medlemmer.",
+    "icon": "♪",
+    "type": "workshop"
+  },
+  {
+    "id": 3,
+    "title": "Kammermusikkkonsert",
+    "date": "2026-10-24",
+    "location": "Bergen",
+    "description": "Konsert med duo, trio, kvartett og kvintett. Medlemmer fremfører egne innstuderte stykker.",
+    "icon": "♫",
+    "type": "konsert"
+  },
+  {
+    "id": 4,
+    "title": "Avslutningskonsert",
+    "date": "2026-12-19",
+    "location": "Bergen",
+    "description": "Årets siste samling – avslutning med konsert, feiring og sosialt samvær for alle medlemmer.",
+    "icon": "♬",
+    "type": "konsert"
   }
 ]

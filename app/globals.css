@@ -34,6 +34,7 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   line-height: 1.6;
+font-size: 18px !important;
   color: var(--text-primary);
   background:
     radial-gradient(1200px 700px at 20% 10%, rgba(127, 208, 198, 0.18), transparent 60%),
@@ -41,3 +42,14 @@ body {
     #f6fafb;
 }
 
+p {
+  font-size: 1.05rem;
+}
+
+h2 {
+  font-size: 1.8rem;
+}
+
+h3 {
+  font-size: 1.2rem;
+}
