@@ -22,8 +22,8 @@
   {
     "id": 3,
     "title": "Kammermusikkkonsert",
-    "date": "2026-10-24",
-    "location": "Bergen",
+    "date": "2026-10-25",
+    "location": "Kultruskkolen, Bergen",
     "description": "Konsert med duo, trio, kvartett og kvintett. Medlemmer fremfører egne innstuderte stykker.",
     "icon": "♫",
     "type": "konsert"
@@ -32,7 +32,7 @@
     "id": 4,
     "title": "Avslutningskonsert",
     "date": "2026-12-19",
-    "location": "Bergen",
+    "location": "Fana Kulturhus, Bergen",
     "description": "Årets siste samling – avslutning med konsert, feiring og sosialt samvær for alle medlemmer.",
     "icon": "♬",
     "type": "konsert"
